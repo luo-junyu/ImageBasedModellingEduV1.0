@@ -48,6 +48,7 @@ float extract_focal_len(const std::string& img_name)
     return fl.first;
 }
 
+// 整体流程
 
 sfm::Correspondences2D2D sift_feature_matching(sfm::FeatureSet &feat1
         , sfm::FeatureSet&feat2)
@@ -221,7 +222,8 @@ main (int argc, char *argv[])
     }
 
 
-    /* 计算相机姿态 */
+    /* 计算相机姿态 */        // 计算相机的初始姿态
+    // 第一个相机和世界坐标系是重合的
     sfm::CameraPose pose1, pose2;
     if(!calc_cam_poses(corrs, &pose1, &pose2, f1, f2))
     {
@@ -229,7 +231,7 @@ main (int argc, char *argv[])
         return -1;
     }
 
-    /* 三角化 */
+    /* 三角化 */ //得到三维点的坐标
     std::vector<math::Vec3f> pts_3d;
     for(int i=0; i<corrs.size(); i++)
     {
@@ -247,8 +249,12 @@ main (int argc, char *argv[])
 //        std::cout<<pts_3d[i][0]<<" "<<pts_3d[i][1]<<" "<<pts_3d[i][2]<<std::endl;
 //    }
 
+    // 完成初始化的过程
+    // 开始非线性优化
+
+
     std::ofstream out("./examples/task2/test_ba.txt");
-    assert(out.is_open());
+//    assert(out.is_open());
 
     /*捆绑调整*/
     std::vector<sfm::ba::Camera> cams(2);
@@ -324,7 +330,7 @@ main (int argc, char *argv[])
     ba_opts.verbose_output = true;
     ba_opts.lm_mse_threshold = 1e-16;
     ba_opts.lm_delta_threshold = 1e-8;
-    sfm::ba::BundleAdjustment ba(ba_opts);
+    sfm::ba::BundleAdjustment ba(ba_opts);  // 使用现成框架
     ba.set_cameras(&cams);
     ba.set_points(&p3ds);
     ba.set_observations(&observations);
